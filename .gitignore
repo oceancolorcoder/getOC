@@ -110,3 +110,7 @@ ENV/
 
 # pyCharm
 .idea/
+
+# My changes (DAA @ NASA)
+.gitignore
+run_getOC*
