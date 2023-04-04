@@ -7,6 +7,13 @@ MIT License
 Copyright (c) 2019 Nils Haentjens & Guillaume Bourdin
 """
 
+"""
+Note to self: Forked repo on oceancolorcoder
+Upstream: upstream
+branch: dev
+Dirk Aurin, NASA/GSFC 2023
+"""
+
 import sys
 from datetime import datetime, timedelta
 from getpass import getpass
@@ -19,6 +26,9 @@ from pandas import read_csv
 import numpy as np
 import socket
 import math
+
+import platform
+import stat
 
 __version__ = "0.6.0"
 verbose = False
@@ -78,7 +88,37 @@ def get_platform(dates, instrument, level):
         pwd = getpass(prompt='EarthData Password: ', stream=None)
     else:
         access_platf = 'cmr'
-        pwd = getpass(prompt='EarthData Password: ', stream=None)
+
+        # DAA Read from .netrc file
+        # pwd = getpass(prompt='EarthData Password: ', stream=None)
+        home = os.path.expanduser('~')
+        if platform.system() == 'Windows':
+            netrcFile = os.path.join(home,'_netrc')
+        else:
+            netrcFile = os.path.join(home,'.netrc')
+        if os.path.exists(netrcFile):
+        #     os.chmod(netrcFile, stat.S_IRUSR | stat.S_IWUSR)
+            # print('netrc found')
+            fo = open(netrcFile)
+            lines = fo.readlines()
+            fo.close()
+            # This will find the Earthdata server
+            foundED = False
+            for i, line in enumerate(lines):
+                if 'machine urs.earthdata.nasa.gov login' in line:
+                    foundED = True
+                    lineIndx = i
+
+            if foundED is True:
+                text = lines[lineIndx]
+                words = text.split('login ')[1]
+                usr = words.split(' password ')[0]
+                pwd = words.split(' password ')[1]
+                pwd = pwd.split('\n')[0]
+            else:
+                pwd = getpass(prompt='EarthData Password: ', stream=None)
+
+
     return access_platf, pwd
 
 
@@ -582,7 +622,7 @@ def login_download(img_names, urls, instrument, access_platform, username, passw
                       '\t- Did you accept the End User License Agreement for this dataset ?\n'
                       '\t- Check login/username.\n'
                       '\t- Check image name/url in *.csv file\n'
-                      '\t- Check for connection problems \n'  
+                      '\t- Check for connection problems \n'
                       '\t- Check for blocked IP \n')
                 # Earthdata download issuecheck https://oceancolor.gsfc.nasa.gov/forum/oceancolor/topic_show.pl?tid=6447
                 # When IP blocked on Earthdata email: connection_problems@oceancolor.gsfc.nasa.gov)
