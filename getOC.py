@@ -31,7 +31,7 @@ import platform
 import stat
 
 __version__ = "0.6.0"
-verbose = False
+verbose = True
 
 # Set constants
 URL_L12BROWSER = 'https://oceancolor.gsfc.nasa.gov/cgi/browse.pl'
@@ -110,6 +110,7 @@ def get_platform(dates, instrument, level):
                     lineIndx = i
 
             if foundED is True:
+                print('Found credentials in netrc file for urs.earthdata.nasa.gov')
                 text = lines[lineIndx]
                 words = text.split('login ')[1]
                 usr = words.split(' password ')[0]
@@ -417,6 +418,7 @@ def get_image_list_cmr(pois, access_platform, query_string, instrument, level='L
         if verbose:
             print('[%i/%i]   Querying %s %s %s %s on CMR    %s    %.5f  %.5f' %
                   (i+1, len(pois), poi['id'], instrument, level, product, poi['dt'], poi['lat'], poi['lon']))
+
         # get polygon around poi and date
         w, s, e, n, day_st, day_end = format_dtlatlon_query(poi, access_platform)
         # Build Query
@@ -541,6 +543,9 @@ def login_download(img_names, urls, instrument, access_platform, username, passw
     else:
         login_key = None
     for i in range(len(url_dwld)):
+        if verbose:
+            print(f'{url_dwld[i]}')
+
         if os.path.isfile(image_names[i]):
             if verbose:
                 print('Skip ' + image_names[i])
@@ -688,6 +693,7 @@ if __name__ == "__main__":
     url_dwld = list()
     # Get list of images to download
     if options.read_image_list:
+        print('Read image list')
         if os.path.isfile(os.path.splitext(args[0])[0] + '_' + options.instrument + '_' +
                           levelname + '_' + options.product + '.csv'):
             # pois = read_csv(os.path.splitext(args[0])[0] + '_' + options.instrument + '_' +
